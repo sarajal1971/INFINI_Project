@@ -1,0 +1,1253 @@
+/**
+ ***************************************************************************************************
+ *
+ * @file TLE82453.c
+ * @brief Control TLE82453
+ *     Processor   : MPC5744P_144
+ *     Version     : Driver 01.00
+ *     Compiler    : GNU C Compiler *
+ *     OS          : FreeRTOS
+ * @version 1.0
+ * @date 2023-3-2-紐⑹슂�씪
+ *
+ * @copyright Copyright (C) 2022. FILLINK Inc. All Rights Reserved.
+ *
+ ***************************************************************************************************
+ */
+
+/*
+ ***************************************************************************************************
+ *
+ *  1. Include files
+ *
+ ***************************************************************************************************
+ */
+#include "Common.h"
+#include "Gpio.h"
+#include "SysTimer.h"
+#include "spi1.h"
+#include "spi2.h"
+#include "TLE82453.h"
+#include "Detect.h"
+//#include "Adc.h"
+
+/*
+ ***************************************************************************************************
+ *
+ *  2. Local Type Defined
+ *
+ ***************************************************************************************************
+ */
+typedef enum {
+    TLE_WORK_RESET_LOW = 0,
+    TLE_WORK_RESET_HIGH,
+    TLE_WORK_RESET_HIGH_WAIT,
+	TLE_WORK_INIT_CH1,
+	TLE_WORK_INIT_CH2,
+	TLE_WORK_PARKING,
+	TLE_WORK_SEAT,
+    TLE_WORK_NORMAL,
+	TLE_WORK_AUTO_MODE,
+	TLE_WORK_MANUAL_MODE,
+    TLE_WORK_FAULT,
+    TLE_WORK_TEST_PWM,
+    TLE_WORK_DEBUG,
+	TLE_WORK_EM_MODE
+}tle_work_t;
+
+
+// �떎李⑥슜 2023.03.01 �쟻�슜�븯���쓬.
+//int FORWARD_CURRENTS[101]={0, 13, 27, 40, 54, 68, 81, 95, 109, 123, 137, 150, 164, 177, 191, 205, 218, 232, 245, 259, 273, 286, 300, 313, 327, 341, 354, 368, 381, 395, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 480, 551, 622, 693, 764};
+//int REVERSE_CURRENTS[101]={0, 13, 27, 40, 54, 68, 81, 95, 109, 123, 137, 150, 164, 177, 191, 205, 218, 232, 245, 259, 273, 286, 300, 313, 327, 341, 354, 368, 381, 395, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 480, 551, 622, 693, 764};
+//int FWD_1ST_CURRENTS[101]={0, 27, 54, 82, 109, 137, 164, 191, 218, 245, 273, 300, 327, 354, 381, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 480, 551, 622, 693, 764};
+//int REV_1ST_CURRENTS[101]={0, 27, 54, 82, 109, 137, 164, 191, 218, 245, 273, 300, 327, 354, 381, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 409, 480, 551, 622, 693, 764};
+
+//test�슜
+int FORWARD_CURRENTS[101]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100};
+int REVERSE_CURRENTS[101]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100};
+int FWD_1ST_CURRENTS[101]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100};
+int REV_1ST_CURRENTS[101]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100};
+
+//�떎李⑥슜 2023.03.01 �쟻�슜�븯���쓬.
+//int FWD_1ST_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//int FWD_1ST_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764};
+//int FWD_2ND_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//int FWD_2ND_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764};
+//int FWD_3RD_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//int FWD_3RD_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764};
+//int REV_1ST_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//int REV_1ST_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764};
+//int REV_2ND_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//int REV_2ND_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764, 764};
+
+
+//test�슜
+int FWD_1ST_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int FWD_1ST_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+int FWD_2ND_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int FWD_2ND_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+int FWD_3RD_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int FWD_3RD_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+int REV_1ST_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int REV_1ST_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+int REV_2ND_SHDN_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int REV_2ND_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+
+
+
+//�떎李⑥슜
+//int PARKING_SHUP_CUR[101]={0, 13, 26, 39, 52, 65, 78, 91, 104, 117, 130, 143, 156, 169, 182, 195, 208, 221, 234, 247, 260, 273, 286, 299, 312, 325, 338, 351, 364, 377, 390, 403, 416, 429, 442, 455, 468, 481, 494, 507, 520, 533, 546, 559, 572, 585, 598, 611, 624, 637, 650, 663, 676, 689, 702, 715, 728, 741, 754, 767, 780, 793, 806, 819, 832, 845, 858, 871, 884, 897, 910, 923, 936, 949, 962, 975, 988, 1001, 1014, 1027, 1040, 1053, 1066, 1079, 1092, 1105, 1118, 1131, 1144, 1157, 1170, 1183, 1196, 1209, 1222, 1235, 1248, 1261, 1274, 1287, 1300};
+int PARKING_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1300, 1300, 1300, 1300, 1300, 1300};
+
+//test�슜
+//int PARKING_SHUP_CUR[101]={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100};
+//int PARKING_SHUP_CUR[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100};
+
+int ZERO_SET_CURRENT[101]={0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+int *ch1_fwd;
+int *ch1_rev;
+int *ch1_pak;
+int *ch2_1st;
+int *ch2_2nd;
+int *ch2_3rd;
+int *dmy_ptr;
+
+
+
+static uint16_t ch1_forward_valve =0;
+static uint16_t ch1_reverse_valve =0;
+static uint16_t ch1_parking_valve =0;
+
+static uint16_t ch2_1st_valve =0;
+static uint16_t ch2_2nd_valve =0;
+static uint16_t ch2_3rd_valve =0;
+
+static uint16_t dly_cnt =0;
+static uint16_t parking_dly_cnt =0;
+//static uint16_t parking_dly_cnt1 =0;
+
+//static uint16_t sbrake_dly_cnt =0;
+
+static uint8_t GEAR_STAGE = 0;
+static uint8_t cur_state = 0;
+static uint8_t old_state =0;
+static uint16_t ref_time = 0;
+static uint16_t current_cnt = 0;
+static uint16_t pak_current_cnt =0;
+static uint8_t gear_sel =0;
+static uint8_t ONE_FLAG = 0;
+//static uint8_t GEAR_DONE_FLAG = 0;
+static uint8_t GEAR_DONE_FLAG = 1;
+static uint8_t SEAT_ON_FLAG =0;
+static uint8_t SBRK_FLAG = 1;	//SBRK_ON�쑝濡� 珥덇린�솕�븳�떎.
+
+//static uint8_t DLY_END_FLG =0;
+static uint8_t WHEEL1_FLAG = 0;
+
+
+//static uint16_t con_sol_cnt1 =0;
+//static uint16_t con_sol_cnt2 =0;
+//static uint16_t con_sol_cnt3 =0;
+//static uint16_t con_sol_cnt4 =0;
+//static uint16_t con_sol_cnt5 =0;
+//static uint16_t	con_sole_cnt6=0;
+
+static uint16_t cs_seat_off = 0;
+
+static uint16_t	cs_auto_ntr =0;
+static uint16_t	cs_auto_fwd =0;
+static uint16_t	cs_auto_rev =0;
+
+static uint16_t	cs_man_fwd1 =0;
+static uint16_t	cs_man_fwd2 =0;
+static uint16_t	cs_man_fwd3 =0;
+static uint16_t	cs_man_ntr =0;
+static uint16_t	cs_man_rev1 =0;
+static uint16_t	cs_man_rev2 =0;
+
+
+
+
+#define 	ZERO_SPD	0
+#define NON_ZERO_SPD	1
+
+// Auto Mode
+//#define NTR					1
+#define AUTO_NTR 				10
+#define AUTO_FWD				20
+#define AUTO_FWD_1ST			21
+#define AUTO_FWD_2ND			22
+#define AUTO_FWD_3RD			23
+#define AUTO_REV 				30
+#define AUTO_REV_1ST			31
+#define AUTO_REV_2ND			32
+#define AUTO_NO_OP				40
+
+#define SBRK_ON					1
+#define SBRK_OFF				0
+
+#define SHIFT_UP_TIME			2000
+
+// Manual Mode
+#define	NTR			1
+#define	NTR_2ND		2
+#define	NTR_3RD		3
+#define	FWD_1ST		4
+#define	FWD_2ND		5
+#define	FWD_3RD		6
+#define	REV_1ST		7
+#define	REV_2ND		8
+#define	REV_3RD		9
+#define NO_OP		19
+
+
+//Gear Change state 2023.01.06
+//-------------------------------------
+#define	NTR_NTR				11
+
+#define	NTR_FWD_1ST			14
+#define	NTR_FWD_2ND			15
+#define	NTR_FWD_3RD			16
+#define	NTR_REV_1ST			17
+#define	NTR_REV_2ND			18
+
+#define	FWD_1ST_FWD_1ST		44
+#define	FWD_1ST_FWD_2ND		45
+#define	FWD_1ST_FWD_3RD		46
+#define	FWD_1ST_REV_1ST		47
+#define	FWD_1ST_REV_2ND		48
+
+#define	FWD_2ND_FWD_1ST		54
+#define	FWD_2ND_FWD_2ND		55
+#define	FWD_2ND_FWD_3RD		56
+#define	FWD_2ND_REV_1ST		57
+#define	FWD_2ND_REV_2ND		58
+
+#define	FWD_3RD_FWD_1ST		64
+#define	FWD_3RD_FWD_2ND		65
+#define	FWD_3RD_FWD_3RD		66
+#define	FWD_3RD_REV_1ST		67
+#define	FWD_3RD_REV_2ND		68
+
+#define	REV_1ST_FWD_1ST		74
+#define	REV_1ST_FWD_2ND		75
+#define	REV_1ST_FWD_3RD		76
+#define	REV_1ST_REV_1ST		77
+#define	REV_1ST_REV_2ND		78
+
+#define	REV_2ND_FWD_1ST		84
+#define	REV_2ND_FWD_2ND		85
+#define	REV_2ND_FWD_3RD		86
+#define	REV_2ND_REV_1ST		87
+#define	REV_2ND_REV_2ND		88
+
+#define NOT_ACT				94
+
+#define	FR_GEAR				100
+#define	NU_GEAR				200
+#define NT_WAIT				110
+
+//-------------------------------------
+
+//#define SBRK_ON			10
+//#define SBRK_OFF		17
+
+#define TIME_TLE82453_RESET_LOW     100     /* 100ms */
+#define TIME_TLE82453_RESET_HIGH    100     /* 100ms */
+#define TIME_TLE82453_RETRY         100     /* 100ms */
+#define TIME_TEST_PWM_INTERVAL      20      /* 20ms */
+#define TIME_NORMAL_INTERVAL        10      /* 10ms */
+#define TIME_RPM_DISPLAY			300		/*300ms*/
+#define TIME_EMERGENCY				1000	/* 1sec */
+
+#define TIME_LOW					10		/* 450ms */
+#define TIME_MID					1000
+#define TIME_MAX					1500
+#define MIN_SEC						10		/*10ms*/
+
+//#define MAX_COUNT_1MS				4000	/*4000*/
+//#define MAX_DIVIDE				40
+
+#define MAX_COUNT_1MS				2000	/*2000*/
+#define MAX_DIVIDE					20
+
+// 1mA/0.7328
+//#define PARKING_MAX  	1300	//	1200*0.7328 = 879.4.6mA
+//#define SETPOINT_MAX	764		//	 764*0.7328 = 559.9mA
+#define PARKING_MAX  	100		//	TEST�슜
+#define SETPOINT_MAX 	100		//	TEST�슜
+#define SETPOINT_MIN	0
+
+#define SETPOINT_STEP	1	// Valve Current Increment/Decrement Step Test Zig
+//#define SETPOINT_STEP	5	// Valve Current Increment/Decrement Step 20122.09.21
+
+
+/*
+ ***************************************************************************************************
+ *
+ *  3. Global Variables
+ *
+ ***************************************************************************************************
+ */
+#define BUFFER_SIZE         2U
+#define NUMBER_OF_FRAMES    2U
+#define TIMEOUT_SPI         1000U
+bool_t bDebugTLE82453 = FALSE;
+
+/*
+ ***************************************************************************************************
+ *
+ *  4. Static Variables
+ *
+ ***************************************************************************************************
+ */
+static sys_time_t timeCh1;
+static sys_time_t timeDLY1;
+static tle_work_t workCh1;
+static tle_work_t prevWorkCh1;
+
+//-------------------------------------------------------------------------------------------------
+//Valve Driver (TLE82453) Resister
+uint16_t RD_ICVID[BUFFER_SIZE] 			= { 0x0000, 0x0000 };
+uint16_t WR_CONFIG[BUFFER_SIZE] 		= { ADDR16_CONFIG | 0x00, 0x0078 };
+uint16_t RD_CONFIG[BUFFER_SIZE] 		= { 0x0100, 0x0000 };
+uint16_t RD_DIAG[BUFFER_SIZE] 			= { 0x0200, 0x0000 };
+uint16_t RD_CLK_DVD[BUFFER_SIZE] 		= { 0x0300, 0x0000 };
+uint16_t WR_CLK_DVD[BUFFER_SIZE] 		= { ADDR16_CLK_DIVIDER | 0x00, 0x179B };	//Fdith = 2KHz
+//uint16_t WR_CLK_DVD[BUFFER_SIZE] 		= { ADDR16_CLK_DIVIDER | 0x00, 0x1FE7 };	//Fdith = 122Hz
+
+uint16_t RD_AUTOZERO[BUFFER_SIZE] 		= { 0x3800, 0x0000 };
+uint16_t WR_AUTOZERO[BUFFER_SIZE] 		= { ADDR16_AUTOZERO_L0 | 0x80, 0x0000 };
+uint16_t WR_CALI_REG[BUFFER_SIZE] 		= { ADDR16_CALIBRATION | 0x80, 0x002A };
+uint16_t RD_CALI_REG[BUFFER_SIZE] 		= { 0x0500, 0x0000 };
+uint16_t WR_SETPOINTL0[BUFFER_SIZE] 	= { ADDR16_SETPOINT_L0 | 0xC0, 0x0000 };
+uint16_t WR_SETPOINTL1[BUFFER_SIZE] 	= { ADDR16_SETPOINT_L1 | 0xC0, 0x0000 };
+uint16_t WR_SETPOINTL2[BUFFER_SIZE] 	= { ADDR16_SETPOINT_L2 | 0xC0, 0x0000 };
+uint16_t WR_DITHER_L0[BUFFER_SIZE] 		= { ADDR16_DITHER_L0 | 0xC0, 0x140E };
+uint16_t WR_DITHER_L1[BUFFER_SIZE] 		= { ADDR16_DITHER_L1 | 0xC0, 0x140E };
+uint16_t WR_DITHER_L2[BUFFER_SIZE] 		= { ADDR16_DITHER_L2 | 0xC0, 0x140E };
+uint16_t WR_PWM_PERIOD_L0[BUFFER_SIZE] 	= { ADDR16_PWM_PERIOD_L0 | 0x60, 0x007B };
+uint16_t WR_PWM_PERIOD_L1[BUFFER_SIZE] 	= { ADDR16_PWM_PERIOD_L1 | 0x60, 0x007B };
+uint16_t WR_PWM_PERIOD_L2[BUFFER_SIZE] 	= { ADDR16_PWM_PERIOD_L2 | 0x60, 0x007B };
+uint16_t RD_FB_REG[BUFFER_SIZE] 		= { 0x4000, 0x0000 };
+uint16_t master_send[BUFFER_SIZE] 		= { 0x0000, 0x0000 };
+
+uint16_t SPI1_Read_Buf[BUFFER_SIZE];
+uint16_t SPI2_Read_Buf[BUFFER_SIZE];
+//-------------------------------------------------------------------------------------------------
+
+/*
+ ***************************************************************************************************
+ *
+ *  5. Static Function Prototypes Declarations
+ *
+ ***************************************************************************************************
+ */
+//static void ctrlDither(void);
+void Gpio_Val_DrvInit(void);	//ch1,ch2 -> chip_en, chip_cs, chip_rst -> 6 pin initialize
+void ALL_Gear_OFF(void);
+void FWD_REV_OFF(void);
+void Gear_123_OFF(void);
+void gear_change(uint8_t gear_stage);
+void gear_ptr_set(uint8_t gear_setptr);
+void Emergency_func(void);
+
+
+/*
+ *==================================================================================================
+ *
+ *  Global Function
+ *
+ *==================================================================================================
+ */
+void TLE82453_initCh1Task(void)
+{
+    Timer_clear(&timeCh1);
+
+    // SPI1 INIT For fwd, rev, parking valve driver
+    DSPI_MasterInit(INST_SPI1, &spi1State, &spi1_MasterInitConfig0);
+    DSPI_MasterSetDelay(INST_SPI1, 0, 1, 1);
+
+    // SPI2 INIT For 1st, 2nd, 3rd valve driver
+    DSPI_MasterInit(INST_SPI2, &spi2State, &spi2_MasterInitConfig0);
+    DSPI_MasterSetDelay(INST_SPI2, 0, 1, 1);
+
+    workCh1 = TLE_WORK_RESET_LOW;
+}
+
+
+/*
+ * @brief Control Parking, Forward, Reverse Valve Driver (TEL82453 - Chip1)
+ * @brief Control 1ST, 2ND, 3RD Valve Driver (TEL82453 - Chip2)
+ * !!! (Data Sheet page-57)
+ * Enable CLK pin watchdog
+ *  0 = Disable Watchdog (Reset value)
+ *  1 = Enable Watchdog
+ *  The output stages are disabled until the WDEN bit is set. To operate
+ *  the device without the watchdog function, the WDEN bit must be set
+ *  to 1 and then cleared to 0.
+ */
+
+//2023. 02. 28 Start Debugging by sara
+void TLE82453_ch1Task(void)
+{
+    if (bDebugTLE82453 == TRUE)		//�뜝�럩�쓧�뜝�럥�뿴�솻洹⑥삕�뜝�럥�빢�슖�댙�삕 占쎈／占쎈쐝�뵳怨ㅼ삕占쎈꼨 �뜝�럥留� �뜝�럥瑜� FALSE�슖�댙�삕 �뜝�럥�뵹�뜝�럥�꽑�뜝�럩肉녑뜝�럩踰�.
+    {
+        if ((workCh1 > TLE_WORK_RESET_HIGH_WAIT) && (workCh1 != TLE_WORK_DEBUG))
+        {
+            prevWorkCh1 = workCh1;
+            workCh1 = TLE_WORK_DEBUG;
+        }
+    }
+
+    switch (workCh1)
+    {
+        case TLE_WORK_RESET_LOW:
+        	Gpio_Val_DrvInit();				//ch1,ch2 -> chip_en, chip_cs, chip_rst -> 6 pin initialize (default disable)
+            Timer_clear(&timeCh1);			//workCh1占썩뫅�삕 timeCh1�뜝�룞�삕 �뜝�럩源뺝뜝�럥吏쀥뜝�럥由�嶺뚯쉻�삕 嶺뚮씭횧�떋占�.
+            workCh1 = TLE_WORK_RESET_HIGH;
+            break;
+
+        case TLE_WORK_RESET_HIGH:
+            if (Timer_isOver(&timeCh1, TIME_TLE82453_RESET_LOW) == TRUE)	//Timer_isOver()�뜝�럥留쇿뜝�럥�빢�뜝�럥裕� call�뜝�럥由��뜝�럥裕� �뜝�럥�뻹�뤆�룄�뫊�뜝�룞�삕�땻占� 100msec �뜝�럩�쐩 TRUE占쎈ご�뜝占� return�뜝�럥由썲뜝�럥堉�.
+            {
+                Gpio_setPins(P_CHIP1_RST, HIGH);		// fwd,rev,parking valve driver reset
+                Gpio_setPins(P_CHIP2_RST, HIGH);		// 1st, 2nd, 3rd valve driver reset
+                Timer_clear(&timeCh1);					// 100msec�뤆�룊�삕 �뜝�럩�걦占쎈쇀�뜝占� �뜝�럥�뵹�뜝�럥占썲뜝�럩紐득쾬�꼻�삕�슖�댙�삕 timeCh1�뜝�럩諭� �뜝�럥堉꾢뜝�럩踰됧뜝�럥�뱺 �뜝�럡�뀬�뜝�럩�뮔�뜝�럥由��뼨�먯삕 �뜝�럩留꾢뜝�럥�돵�뜝�럡�맋 clear�뜝�럥�돵 �뜝�럥瑗��뜝�럥裕됧뜝�럥堉�.
+                workCh1 = TLE_WORK_RESET_HIGH_WAIT;		// next stage占쎈ご�뜝占� �뜝�럩留꾢뜝�럥�돵�뜝�럡�맋 workCh1�뜝�럥�뱺 �뜝�럥堉꾢뜝�럩踰� stage占쎈ご�뜝占� �뜝�룞�삕�뜝�럩�젧�뜝�럥由��뜝�룞�삕�뜝�럥堉�.
+            }
+            break;
+
+        case TLE_WORK_RESET_HIGH_WAIT:
+            if (Timer_isOver(&timeCh1, TIME_TLE82453_RESET_HIGH) == TRUE)
+            {
+                workCh1 = TLE_WORK_INIT_CH1;		//�뜝�럥堉꾢뜝�럩�젷 占쎈쨨占쎈릮占�..
+            	//workCh1 = TLE_WORK_RESET_HIGH_WAIT; //TEST�뜝�럩�뮔 占쎈닱占쎈샑�뇡占� 占쎈쇀占쎈쳜�걡占�
+                Gpio_setPins(P_CHIP1_EN, HIGH);
+                Gpio_setPins(P_CHIP2_EN, HIGH);
+            }
+            break;
+
+
+        case TLE_WORK_INIT_CH1:		// fwd, rev, parking valve driver initialize
+            if (Timer_isOver(&timeCh1, TIME_TLE82453_RETRY) == TRUE)
+            {
+                spi_write(SPI_CHIP1, WR_CLK_DVD[0], WR_CLK_DVD[1]);
+                spi_read(SPI_CHIP1, ADDR_CLK_DIVIDER, SPI1_Read_Buf);
+                log_print("SPI1: %04x, %04x", SPI1_Read_Buf[0], SPI1_Read_Buf[1]);
+
+                spi_read(SPI_CHIP1, ADDR_DIAGNOSIS, SPI1_Read_Buf);
+                log_print("SPI1: %04x, %04x", SPI1_Read_Buf[0], SPI1_Read_Buf[1]);
+
+                Gpio_setPins(P_CHIP1_EN, HIGH);
+
+                if (SPI1_Read_Buf[0] == 0x0200 && SPI1_Read_Buf[1] == 0x0000)
+                {
+                    workCh1 = TLE_WORK_INIT_CH2;
+                    spi_write(SPI_CHIP1, WR_PWM_PERIOD_L0[0], WR_PWM_PERIOD_L0[1]);
+                    spi_write(SPI_CHIP1, WR_PWM_PERIOD_L1[0], WR_PWM_PERIOD_L1[1]);
+                    spi_write(SPI_CHIP1, WR_PWM_PERIOD_L2[0], WR_PWM_PERIOD_L2[1]);
+
+                    spi_write(SPI_CHIP1, WR_DITHER_L0[0], WR_DITHER_L0[1]);
+                    spi_write(SPI_CHIP1, WR_DITHER_L1[0], WR_DITHER_L1[1]);
+                    spi_write(SPI_CHIP1, WR_DITHER_L2[0], WR_DITHER_L2[1]);
+
+                    spi_write(SPI_CHIP1, WR_SETPOINTL0[0], WR_SETPOINTL0[1]);
+                    spi_write(SPI_CHIP1, WR_SETPOINTL1[0], WR_SETPOINTL1[1]);
+                    spi_write(SPI_CHIP1, WR_SETPOINTL2[0], WR_SETPOINTL2[1]);
+                }
+            }
+            break;
+
+        case TLE_WORK_INIT_CH2:		// 1st, 2nd, 3rd valve driver initialize
+            if (Timer_isOver(&timeCh1, TIME_TLE82453_RETRY) == TRUE)
+            {
+                spi_write(SPI_CHIP2, WR_CLK_DVD[0], WR_CLK_DVD[1]);
+                spi_read(SPI_CHIP2, ADDR_CLK_DIVIDER, SPI2_Read_Buf);
+                log_print(LOG_GREEN "SPI2: %04x, %04x"LOG_COLOR_RESET, SPI2_Read_Buf[0], SPI2_Read_Buf[1]);
+
+                spi_read(SPI_CHIP2, ADDR_DIAGNOSIS, SPI2_Read_Buf);
+                log_print(LOG_GREEN "SPI2: %04x, %04x"LOG_COLOR_RESET, SPI2_Read_Buf[0], SPI2_Read_Buf[1]);
+
+                Gpio_setPins(P_CHIP2_EN, HIGH);
+
+                if (SPI2_Read_Buf[0] == 0x0200 && SPI2_Read_Buf[1] == 0x0000)
+                {
+                    workCh1 = TLE_WORK_PARKING;
+                    spi_write(SPI_CHIP2, WR_PWM_PERIOD_L0[0], WR_PWM_PERIOD_L0[1]);
+                    spi_write(SPI_CHIP2, WR_PWM_PERIOD_L1[0], WR_PWM_PERIOD_L1[1]);
+                    spi_write(SPI_CHIP2, WR_PWM_PERIOD_L2[0], WR_PWM_PERIOD_L2[1]);
+
+                    spi_write(SPI_CHIP2, WR_DITHER_L0[0], WR_DITHER_L0[1]);
+                    spi_write(SPI_CHIP2, WR_DITHER_L1[0], WR_DITHER_L1[1]);
+                    spi_write(SPI_CHIP2, WR_DITHER_L2[0], WR_DITHER_L2[1]);
+
+                    spi_write(SPI_CHIP2, WR_SETPOINTL0[0], WR_SETPOINTL0[1]);
+                    spi_write(SPI_CHIP2, WR_SETPOINTL1[0], WR_SETPOINTL1[1]);
+                    spi_write(SPI_CHIP2, WR_SETPOINTL2[0], WR_SETPOINTL2[1]);
+
+                }
+            }
+            break;
+
+
+        case TLE_WORK_PARKING:
+
+        	if(sysStat.bParkingBrake == OFF)	//PARKING SWITCH OFF
+        	{
+        		ch1_parking_valve = PARKING_MAX;
+        		spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); workCh1 = TLE_WORK_SEAT;
+        										  log_print("P-BRK ON : Parking Valve LOCK OFF complete!!");
+        		if(sysStat.bEmergency == ON) 	{ Emergency_func();	workCh1 = TLE_WORK_EM_MODE;
+           										  log_print("EM Switch ON : Parking ON, FWD_OFF, REV_OFF, 1ST_OFF , 2ND_OFF, 3RD_OFF");}
+        	}
+
+        	else // PARKING SWITCH ON (sysStat.bParkingBrake == ON) Emergency 占쎄맒占쎌넺占쏙옙 占쎈섧占쎌젫 占쎈선占쎈뮄 占쎄맒占쎌넺占쎈퓠占쎄퐣占쎈즲 獄쏆뮇源� 占쎈막 占쎈땾 占쎌뿳占쎈뼄.
+        	{
+        		ch1_parking_valve = 0;
+        		spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); workCh1 = TLE_WORK_PARKING;
+
+        		if(sysStat.bEmergency == ON) 	{ Emergency_func(); workCh1 = TLE_WORK_EM_MODE;
+					  	  	  	  	  	  	  	  log_print("EM Switch ON : Parking ON, FWD_OFF, REV_OFF, 1ST_OFF , 2ND_OFF, 3RD_OFF");}
+        	}
+        	break;
+
+        case TLE_WORK_SEAT:
+
+        	if(sysStat.bSeat == ON)	{ workCh1 = TLE_WORK_NORMAL; SEAT_ON_FLAG = 1; } 	// 占쎌뒲占쎌읈占쎌쁽揶쏉옙 占쎌벥占쎌쁽占쎈퓠 占쎈툩占쎈릭占쎌벉占쎌뱽 占쎌뵥筌욑옙占쎈릭�⑨옙, 占쎈뼄占쎌벉 占쎈뮞占쎈�믭옙�뵠筌욑옙(AUTO/MANUAL占쎄퐨占쎄문 占쎈뮞占쎈�믭옙�뵠筌욑옙)嚥∽옙 占쎌뵠占쎈짗占쎈립占쎈뼄.
+        	else 					{ workCh1 = TLE_WORK_SEAT;	SEAT_ON_FLAG = 0; }
+        	break;
+
+        case TLE_WORK_NORMAL:
+        	if( sysStat.bAutoManual == ON) 	{ workCh1 = TLE_WORK_AUTO_MODE;   Timer_clear(&timeDLY1); cur_state = AUTO_NO_OP; SEAT_ON_FLAG = 1;	log_print("AUTO MODE"); }
+        	else 							{ workCh1 = TLE_WORK_MANUAL_MODE; Timer_clear(&timeDLY1); cur_state = NO_OP; 	  SEAT_ON_FLAG = 1;	log_print("MANUAL MODE"); }
+        	break;
+
+        case TLE_WORK_AUTO_MODE:
+
+        	//001. Ready State : NEUTRAL, Parking Switch off, Seat Switch on, EM Switch off �씪 �븣留�
+        	if(SEAT_ON_FLAG == 1)
+        	{
+        		if(sysStat.gearStat == GEAR_STAT_NTR && sysStat.bParkingBrake == OFF && sysStat.bSeat == ON && sysStat.bEmergency == OFF && sysStat.bAutoManual == ON)
+				{
+	        		if (ch1_parking_valve == 0)
+	        		{
+	        			ch1_parking_valve = PARKING_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);
+	        			log_print("Auto Mode (SEAT_ON_FLAG == 1) Parking Valve = %d", ch1_parking_valve);
+	        		}
+					SEAT_ON_FLAG = 0;
+					log_print("Auto Mode (SEAT_ON_FLAG == 0), NTR,PBK_OFF,SEAT_ON,EM_OFF");
+				}
+
+        		//if(sysStat.bAutoManual == OFF ) { workCh1 = TLE_WORK_NORMAL; cur_state = AUTO_NO_OP; }	// SEAT_ON_FLAG ==1占쎌뵠沃섓옙嚥∽옙 EMERGENCY�몴占� 占쎌젫占쎌뇚占쎈릭�⑥쥓�뮉 占쎌뵠 嚥≪뮇彛낉옙肉됵옙苑뚳쭕占� 占쎈짗占쎌삂占쎈릭沃섓옙嚥∽옙
+        		if(sysStat.bAutoManual == OFF && sysStat.rpmWheel1 == 0 ) { workCh1 = TLE_WORK_NORMAL; cur_state = AUTO_NO_OP; }	// Add by sara 2023.02.20
+        	}
+        	//002. GEAR INPUT STAGE
+        	if(SEAT_ON_FLAG == 0 && sysStat.bParkingBrake == OFF && sysStat.bSeat == ON && sysStat.bEmergency == OFF)
+        	{
+        			//if (ch1_parking_valve == 0) { ch1_parking_valve = SETPOINT_MAX;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); log_print("P-BRK OFF : Parking Valve LOCK OFF complete!!"); }
+              		if(sysStat.gearStat == GEAR_STAT_NTR ) cur_state = AUTO_NTR;
+   	           		if(sysStat.gearStat == GEAR_STAT_FWD ) cur_state = AUTO_FWD;
+              		if(sysStat.gearStat == GEAR_STAT_REV ) cur_state = AUTO_REV;
+           	}
+        	//003. PARKING STAGE
+        	//if(SEAT_ON_FLAG == 0 && sysStat.bParkingBrake == ON && sysStat.bEmergency == OFF) //Parking ON
+        	if(sysStat.bParkingBrake == ON && sysStat.bEmergency == OFF) //Parking ON
+        	{
+        		//FWD_REV_OFF();	//edited 2023.02.28 by sara
+        		ALL_Gear_OFF();		//add 2023.02.28 by sara
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve ==0 )
+        		{
+            		if (ch1_parking_valve > 0) { ch1_parking_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);  }
+					ONE_FLAG = 0;		//add 2023.02.28 by sara
+					GEAR_DONE_FLAG =1;	//add 2023.02.28 by sara
+            		SEAT_ON_FLAG = 1;
+        		}
+        		cur_state = AUTO_NO_OP;
+        	}
+
+        	//004. SEAT OFF STAGE	edited by sara 2023.03.06 assisted by ys park.
+        	if(sysStat.bSeat == OFF && sysStat.bEmergency == OFF)
+        	{
+        		FWD_REV_OFF();
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve ==0 )
+        		{
+        			if (ch1_parking_valve > 0) { ch1_parking_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); SEAT_ON_FLAG = 1;}
+        			if(cs_seat_off++ > 500) { log_print("AUTO Mode SEAT OFF : complete!!"); cs_seat_off=0; }
+        		}
+        		cur_state = AUTO_NO_OP;
+        	}
+
+        	//005. EMERGENCY STAGE
+        	if(sysStat.bEmergency == ON) //Emergency 疫꿸퀡�뮟占쏙옙 EM Switch揶쏉옙 ON占쎈┷筌롳옙 �눧�똻�쒎쳞占� 占쎈뼄占쎈뻬占쎈쭆占쎈뼄. 占쎈선占쎈폏占쎈립 鈺곌퀗援� 占쎈꺗占쎈퓠占쎄퐣占쎈즲. SEAT_ON_FLAG占쎌벥 占쎄맒占쎄묶占쏙옙占쎈뮉 占쎄맒�꽴占쏙옙毓억옙�뵠 EMERGENCY占쎄맒占쎌넺占쎌뵠 獄쏆뮇源�占쎈릭筌롳옙 獄쏅뗀以� 占쎈뼄占쎈뻬占쎈립占쎈뼄.
+        	{
+        		FWD_REV_OFF();
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve == 0)
+        		{
+            		if (ch1_parking_valve > 0) { ch1_parking_valve = 0; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+            		ALL_Gear_OFF(); workCh1 = TLE_WORK_EM_MODE; log_print("EM Switch ON : Parking ON, FWD, REV, 1ST, 2ND, 3RD OFF");
+            		//goto EMERGENCY;
+        		}
+        		cur_state = NO_OP;
+        	}
+        	//006. MANUAL SELECT STAGE
+        	if(sysStat.bAutoManual == OFF && sysStat.rpmWheel1 == 0 && cur_state == AUTO_NTR) //Switch OFF ---> Manual Mode
+        	{
+        		workCh1 = TLE_WORK_NORMAL;
+        		cur_state = AUTO_NO_OP;
+        	}
+
+        	//S-BRK Logic
+        	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+			if(sysStat.bServiceBrake ==  ON)
+			{
+				if(parking_dly_cnt != 0) parking_dly_cnt = 0;
+				if(SBRK_FLAG != SBRK_ON) SBRK_FLAG = SBRK_ON;
+				if(ch1_forward_valve > 0){ ch1_forward_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve);}
+				if(ch1_reverse_valve > 0){ ch1_reverse_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve);}
+				if(sysStat.rpmWheel1 == 0 )
+				{
+					if(ch1_parking_valve > 0 ) { ch1_parking_valve = 0; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+					old_state = AUTO_NTR;
+					Gear_123_OFF();
+					ONE_FLAG = 0;
+					GEAR_DONE_FLAG =1;
+					WHEEL1_FLAG = ZERO_SPD;
+					pak_current_cnt = 0;
+
+				}
+				else { WHEEL1_FLAG = NON_ZERO_SPD; }
+			}
+
+			if(sysStat.bServiceBrake ==  OFF && SBRK_FLAG == SBRK_ON && SEAT_ON_FLAG == 0)
+			{
+				if(sysStat.rpmWheel1 != 0)	// Wheel1�씠 0�씠 �븘�땲�씪硫� �쟾/�썑吏� 諛몃툕�뿉留� �쟾瑜섎�� �씤媛��븳�떎.
+				{
+					if(sysStat.gearStat == GEAR_STAT_FWD) if(ch1_forward_valve == 0 && old_state != AUTO_NTR)
+					{ ch1_forward_valve = SETPOINT_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve);}
+
+					if(sysStat.gearStat == GEAR_STAT_REV) if(ch1_reverse_valve == 0 && old_state != AUTO_NTR)
+					{ ch1_reverse_valve = SETPOINT_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve);}
+				}
+				//if(ch1_parking_valve == 0 && sysStat.bParkingBrake == OFF) { ch1_parking_valve =  PARKING_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);}
+				SBRK_FLAG = SBRK_OFF;
+			}
+			//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+			//if(con_sole_cnt6++ == 500)	{ log_print("Engine : %d, Wheel : %d",sysStat.rpmEngin,sysStat.rpmWheel1); con_sole_cnt6 = 0;}
+        	switch(cur_state)
+        	{
+				case	AUTO_NTR:
+								ALL_Gear_OFF();	//Parking�쓣 �젣�쇅�븯怨� 紐⑤몢 off (諛몃툕�뿉�꽌 �쟾瑜섎�� 0�쑝濡� �꽕�젙�븳�떎.)
+								if(ch1_parking_valve == 0) { ch1_parking_valve = PARKING_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); } // Parking OFF
+								if(old_state != AUTO_NTR) old_state = AUTO_NTR;
+								if(GEAR_STAGE != NTR_NTR) GEAR_STAGE = NTR_NTR;
+								if(GEAR_DONE_FLAG != 1) GEAR_DONE_FLAG =1;	//湲곗뼱 蹂��냽以묒뿉 AUTO_NTR濡� �삤硫� ONE_FLAG, GEAR_DONE_FLAG�뒗 0�쑝濡� 珥덇린�솕 �빐�빞留� �븳�떎.
+								if(ONE_FLAG != 0) ONE_FLAG =0;
+								if(dly_cnt != 0) dly_cnt = 0;
+
+
+								cs_auto_ntr++;
+								if(cs_auto_ntr == 500) { log_print("AUTO_NTR"); cs_auto_ntr =0;}
+								break;
+
+				case	AUTO_FWD:
+
+								if(old_state == AUTO_REV_2ND ) { ALL_Gear_OFF(); if(sysStat.rpmWheel1 == 0){ old_state = AUTO_NTR;} ONE_FLAG =0; GEAR_DONE_FLAG =1;}
+								if(old_state == AUTO_REV_1ST ) { ALL_Gear_OFF(); if(sysStat.rpmWheel1 == 0){ old_state = AUTO_NTR;} ONE_FLAG =0; GEAR_DONE_FLAG =1;}
+
+								if(sysStat.rpmWheel1 == 0 && SBRK_FLAG == SBRK_OFF && old_state == AUTO_NTR && GEAR_DONE_FLAG == 1)
+								{ old_state = AUTO_FWD_1ST; GEAR_DONE_FLAG = 0; GEAR_STAGE =     NTR_FWD_1ST; log_print("NTR-->FWD_1ST");}
+
+								if(sysStat.rpmWheel1 > 250 && SBRK_FLAG == SBRK_OFF && old_state == AUTO_FWD_1ST && GEAR_DONE_FLAG == 1)
+								{ old_state = AUTO_FWD_2ND; GEAR_DONE_FLAG = 0; GEAR_STAGE = FWD_1ST_FWD_2ND; log_print("FWD_1ST-->FWD_2ND"); }
+
+								if(sysStat.rpmWheel1  > 450 && SBRK_FLAG == SBRK_OFF && old_state == AUTO_FWD_2ND && GEAR_DONE_FLAG == 1)
+								{ old_state = AUTO_FWD_3RD; GEAR_DONE_FLAG = 0; GEAR_STAGE = FWD_2ND_FWD_3RD; log_print("FWD_2ND-->FWD_3RD"); }
+
+								if(GEAR_DONE_FLAG ==1) cs_auto_fwd++;
+								if(cs_auto_fwd == 500 && GEAR_DONE_FLAG ==1)
+								{
+									if(old_state == AUTO_NTR)     log_print("AUTO_NTR_FWD_1ST"); cs_auto_fwd =0;
+									if(old_state == AUTO_FWD_1ST) log_print("AUTO_FWD_1ST"); cs_auto_fwd =0;
+									if(old_state == AUTO_FWD_2ND) log_print("AUTO_FWD_2ND"); cs_auto_fwd =0;
+									if(old_state == AUTO_FWD_3RD) log_print("AUTO_FWD_3RD"); cs_auto_fwd =0;
+								}
+
+								break;
+
+				case	AUTO_REV:
+								if(old_state == AUTO_FWD_3RD ) { ALL_Gear_OFF(); if(sysStat.rpmWheel1 == 0){ old_state = AUTO_NTR;} ONE_FLAG =0; GEAR_DONE_FLAG =1;}
+								if(old_state == AUTO_FWD_2ND ) { ALL_Gear_OFF(); if(sysStat.rpmWheel1 == 0){ old_state = AUTO_NTR;} ONE_FLAG =0; GEAR_DONE_FLAG =1;}
+								if(old_state == AUTO_FWD_1ST ) { ALL_Gear_OFF(); if(sysStat.rpmWheel1 == 0){ old_state = AUTO_NTR;} ONE_FLAG =0; GEAR_DONE_FLAG =1;}
+
+								if(sysStat.rpmWheel1 == 0 && SBRK_FLAG == SBRK_OFF && old_state == AUTO_NTR && GEAR_DONE_FLAG == 1)
+								{ old_state = AUTO_REV_1ST; GEAR_DONE_FLAG = 0; GEAR_STAGE =     NTR_REV_1ST; log_print("NTR-->REV_1ST");}
+
+								if(sysStat.rpmWheel1 > 250 && SBRK_FLAG == SBRK_OFF && old_state == AUTO_REV_1ST && GEAR_DONE_FLAG == 1)
+								{ old_state = AUTO_REV_2ND; GEAR_DONE_FLAG = 0; GEAR_STAGE = REV_1ST_REV_2ND; log_print("REV_1ST-->REV_2ND"); }
+
+
+								if(GEAR_DONE_FLAG ==1) cs_auto_rev++;
+								if(cs_auto_rev == 500 && GEAR_DONE_FLAG ==1)
+								{
+									if(old_state == AUTO_NTR)     log_print("AUTO_NTR_REV_1ST"); cs_auto_fwd =0;
+									if(old_state == AUTO_REV_1ST) log_print("AUTO_REV_1ST"); cs_auto_rev =0;
+									if(old_state == AUTO_REV_2ND) log_print("AUTO_REV_2ND"); cs_auto_rev =0;
+								}
+								break;
+
+				case	AUTO_NO_OP:
+								break;
+
+				default:
+								break;
+        	}
+
+        	if(GEAR_DONE_FLAG ==0) gear_change(GEAR_STAGE);
+        	//if(WHEEL1_FLAG == ZERO_SPD)
+         	break;
+
+
+        case TLE_WORK_MANUAL_MODE:
+        	//001. �룞�옉 ��湲곗긽�깭
+        	if(SEAT_ON_FLAG == 1)
+        	{
+				if(sysStat.gearStat == GEAR_STAT_NTR && sysStat.gearLevel == GEAR_LEVEL_1ST && sysStat.bParkingBrake == OFF && sysStat.bSeat == ON && sysStat.bEmergency == OFF && sysStat.bAutoManual == OFF)
+				{
+	        		if (ch1_parking_valve == 0)
+	        		{
+	        			ch1_parking_valve = PARKING_MAX;
+	        			spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);
+	        			log_print("Manual Mode (SEAT_ON_FLAG == 1) Parking Valve = %d", ch1_parking_valve);
+	        		}
+					SEAT_ON_FLAG = 0;
+					log_print("Manual Mode (SEAT_ON_FLAG == 0) NTR_1ST,PBK_OFF,SEAT_ON,EM_OFF");
+				}
+
+				if(sysStat.bAutoManual == ON && sysStat.rpmWheel1 == 0 ) { workCh1 = TLE_WORK_NORMAL; cur_state = NO_OP; }	//add by sara 2023.02.16
+        	}
+
+        	//002. GEAR INPUT STAGE
+        	if(SEAT_ON_FLAG == 0 && sysStat.bParkingBrake == OFF && sysStat.bSeat == ON && sysStat.bEmergency == OFF)	//疫꿸퀣堉� 占쎄퐨占쎄문占쏙옙 占쎄퐣�뜮袁⑸뮞 �뇡�슢�쟿占쎌뵠占쎄쾿占쏙옙占쎈뮉 占쎄맒�꽴占쏙옙毓억옙�뵠 占쎄퐨占쎄문占쎈┷占쎈선占쎈튊 占쎈립占쎈뼄.
+        	{
+				if(sysStat.gearLevel == GEAR_LEVEL_1ST && sysStat.gearStat == GEAR_STAT_NTR) cur_state = NTR;
+				if(sysStat.gearLevel == GEAR_LEVEL_2ND && sysStat.gearStat == GEAR_STAT_NTR) cur_state = NTR;
+				if(sysStat.gearLevel == GEAR_LEVEL_3RD && sysStat.gearStat == GEAR_STAT_NTR) cur_state = NTR;
+				if(sysStat.gearLevel == GEAR_LEVEL_1ST && sysStat.gearStat == GEAR_STAT_FWD) cur_state = FWD_1ST;
+				if(sysStat.gearLevel == GEAR_LEVEL_2ND && sysStat.gearStat == GEAR_STAT_FWD) cur_state = FWD_2ND;
+				if(sysStat.gearLevel == GEAR_LEVEL_3RD && sysStat.gearStat == GEAR_STAT_FWD) cur_state = FWD_3RD;
+				if(sysStat.gearLevel == GEAR_LEVEL_1ST && sysStat.gearStat == GEAR_STAT_REV) cur_state = REV_1ST;
+				if(sysStat.gearLevel == GEAR_LEVEL_2ND && sysStat.gearStat == GEAR_STAT_REV) cur_state = REV_2ND;
+				if(sysStat.gearLevel == GEAR_LEVEL_3RD && sysStat.gearStat == GEAR_STAT_REV) cur_state = REV_2ND;
+        	}
+        	//003 PARKING STAGE
+        	if(sysStat.bParkingBrake == ON && sysStat.bEmergency == OFF) //Parking ON
+        	{
+        		//FWD_REV_OFF();	//edited 2023.02.28 by sara
+        		ALL_Gear_OFF();		//add 2023.02.28 by sara
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve ==0 )
+        		{
+            		if (ch1_parking_valve > 0) { ch1_parking_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+					ONE_FLAG = 0;		//add 2023.02.28 by sara
+					GEAR_DONE_FLAG =1;	//add 2023.02.28 by sara
+            		SEAT_ON_FLAG = 1;
+        		}
+        		cur_state = NO_OP;
+        	}
+
+        	//004. SEAT OFF STAGE
+        	if(sysStat.bSeat == OFF && sysStat.bEmergency == OFF)
+        	{
+        		FWD_REV_OFF();
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve ==0 )
+        		{
+        			if (ch1_parking_valve > 0) { ch1_parking_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); SEAT_ON_FLAG = 1;}
+        			if(cs_seat_off++ > 500) { log_print("AUTO Mode SEAT OFF : complete!!"); cs_seat_off=0; }
+        		}
+        		cur_state = NO_OP;
+        	}
+
+        	//005. EMERGENCY STAGE
+        	if(sysStat.bEmergency == ON)
+        	{
+        		FWD_REV_OFF();
+        		if(ch1_forward_valve == 0 && ch1_reverse_valve == 0)
+        		{
+            		if (ch1_parking_valve > 0) { ch1_parking_valve = 0; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+            		ALL_Gear_OFF(); workCh1 = TLE_WORK_EM_MODE; log_print("EM Switch ON : Parking ON, FWD, REV, 1ST, 2ND, 3RD OFF");
+        		}
+        		cur_state = NO_OP;
+        	}
+        	//006. AUTO SELECT STAGE
+        	if(sysStat.bAutoManual == ON && sysStat.rpmWheel1 == 0 && cur_state == NTR) //Switch ON ---> Auto Mode
+        	{
+        		workCh1 = TLE_WORK_NORMAL;
+        		cur_state = NO_OP;
+        	}
+
+        	//S-BRK Logic
+        	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+			if(sysStat.bServiceBrake ==  ON)
+			{
+				if(SBRK_FLAG != SBRK_ON) SBRK_FLAG = SBRK_ON;
+				if(ch1_forward_valve > 0){ ch1_forward_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve);}
+				if(ch1_reverse_valve > 0){ ch1_reverse_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve);}
+				if(sysStat.rpmWheel1 == 0 )
+				{
+					//if(ch1_parking_valve > 0 ) { ch1_parking_valve = 0; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+					old_state = NTR;
+					Gear_123_OFF();
+					ONE_FLAG = 0;
+					GEAR_DONE_FLAG =1;
+					WHEEL1_FLAG = ZERO_SPD;
+				}
+				else { WHEEL1_FLAG = NON_ZERO_SPD; }
+			}
+
+			if(sysStat.bServiceBrake ==  OFF && SBRK_FLAG == SBRK_ON && SEAT_ON_FLAG == 0)
+			{
+				if(sysStat.gearStat == GEAR_STAT_FWD) if(ch1_forward_valve == 0 && old_state != NTR)
+				{ ch1_forward_valve = SETPOINT_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve);}
+
+				if(sysStat.gearStat == GEAR_STAT_REV) if(ch1_reverse_valve == 0 && old_state != NTR)
+				{ ch1_reverse_valve = SETPOINT_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve);}
+
+
+				//if(ch1_parking_valve == 0 && sysStat.bParkingBrake == OFF) { ch1_parking_valve =  PARKING_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);}
+				SBRK_FLAG = SBRK_OFF;
+			}
+			//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+			switch(cur_state)
+			{
+				case		NTR:
+								ALL_Gear_OFF();
+								if(ch1_parking_valve == 0) { ch1_parking_valve = PARKING_MAX; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); } // Parking OFF
+								if(old_state != NTR) { old_state = NTR;}
+								if(GEAR_DONE_FLAG != 1) GEAR_DONE_FLAG =1;
+								if(ONE_FLAG != 0) ONE_FLAG =0;
+
+								cs_man_ntr++;
+								if(cs_man_ntr == 500) { log_print("MANUAL_NTR"); cs_man_ntr =0;}
+								break;
+
+				case	FWD_1ST:
+								if(SBRK_FLAG == SBRK_OFF && old_state == NTR     && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = FWD_1ST; GEAR_STAGE =     NTR_FWD_1ST; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) 	{ old_state = FWD_1ST; GEAR_STAGE = FWD_2ND_FWD_1ST; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) 	{ old_state = FWD_1ST; GEAR_STAGE = FWD_3RD_FWD_1ST; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = FWD_1ST; GEAR_STAGE =     NTR_FWD_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = FWD_1ST; GEAR_STAGE =     NTR_FWD_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0)	{ old_state = FWD_1ST; GEAR_STAGE =     NTR_FWD_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 1 ) 							{ old_state = FWD_1ST; GEAR_STAGE = 	NTR_FWD_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0)	{ old_state = FWD_1ST; GEAR_STAGE =     	NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 0 )	{ GEAR_DONE_FLAG = 1; ONE_FLAG =0; ALL_Gear_OFF(); }
+
+								if(GEAR_DONE_FLAG ==1) cs_man_fwd1++;
+								if(cs_man_fwd1 == 500 && GEAR_DONE_FLAG == 1)
+								{
+									if(old_state == NTR) { log_print("cur_state : MANUAL_1ST, old_state : NTR"); cs_man_fwd1 =0;}
+									if(old_state == FWD_1ST) { log_print("cur_state : MANUAL_FWD_1ST, old_state : FWD_1ST"); cs_man_fwd1 =0;}
+									if(old_state == FWD_2ND) { log_print("cur_state : MANUAL_FWD_1ST, old_state : FWD_2ND"); cs_man_fwd1 =0;}
+									if(old_state == FWD_3RD) { log_print("cur_state : MANUAL_FWD_1ST, old_state : FWD_3RD"); cs_man_fwd1 =0;}
+									if(old_state == REV_1ST) { log_print("cur_state : MANUAL_FWD_1ST, old_state : REV_1ST"); cs_man_fwd1 =0;}
+									if(old_state == REV_2ND) { log_print("cur_state : MANUAL_FWD_1ST, old_state : REV_2ND"); cs_man_fwd1 =0;}
+								}
+
+								break;
+				case	FWD_2ND:
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) { old_state = FWD_2ND; GEAR_STAGE = FWD_1ST_FWD_2ND; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) { old_state = FWD_2ND; GEAR_STAGE = FWD_3RD_FWD_2ND; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == NTR     && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 1 ) { old_state = FWD_2ND; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1 ) { old_state = FWD_2ND; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+
+								if(GEAR_DONE_FLAG ==1) cs_man_fwd2++;
+								if(cs_man_fwd2 == 500 && GEAR_DONE_FLAG == 1)
+								{
+									if(old_state == NTR) { log_print("cur_state : MANUAL_1ST, old_state : NTR"); cs_man_fwd2 =0;}
+									if(old_state == FWD_1ST) { log_print("cur_state : MANUAL_FWD_2ND, old_state : FWD_1ST"); cs_man_fwd2 =0;}
+									if(old_state == FWD_2ND) { log_print("cur_state : MANUAL_FWD_2ND, old_state : FWD_2ND"); cs_man_fwd2 =0;}
+									if(old_state == FWD_3RD) { log_print("cur_state : MANUAL_FWD_2ND, old_state : FWD_3RD"); cs_man_fwd2 =0;}
+									if(old_state == REV_1ST) { log_print("cur_state : MANUAL_FWD_2ND, old_state : REV_1ST"); cs_man_fwd2 =0;}
+									if(old_state == REV_2ND) { log_print("cur_state : MANUAL_FWD_2ND, old_state : REV_2ND"); cs_man_fwd2 =0;}
+								}
+
+
+								break;
+				case	FWD_3RD:
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) { old_state = FWD_3RD; GEAR_STAGE = FWD_1ST_FWD_3RD; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) { old_state = FWD_3RD; GEAR_STAGE = FWD_2ND_FWD_3RD; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == NTR     && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_3RD; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_3RD; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = FWD_3RD; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 1) { old_state = FWD_3RD; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1) { old_state = FWD_3RD; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+
+								if(GEAR_DONE_FLAG ==1) cs_man_fwd3++;
+								if(cs_man_fwd3 == 500 && GEAR_DONE_FLAG == 1)
+								{
+									if(old_state == NTR) { log_print("cur_state : MANUAL_1ST, old_state : NTR"); cs_man_fwd3 =0;}
+									if(old_state == FWD_1ST) { log_print("cur_state : MANUAL_FWD_3RD, old_state : FWD_1ST"); cs_man_fwd3 =0;}
+									if(old_state == FWD_2ND) { log_print("cur_state : MANUAL_FWD_3RD, old_state : FWD_2ND"); cs_man_fwd3 =0;}
+									if(old_state == FWD_3RD) { log_print("cur_state : MANUAL_FWD_3RD, old_state : FWD_3RD"); cs_man_fwd3 =0;}
+									if(old_state == REV_1ST) { log_print("cur_state : MANUAL_FWD_3RD, old_state : REV_1ST"); cs_man_fwd3 =0;}
+									if(old_state == REV_2ND) { log_print("cur_state : MANUAL_FWD_3RD, old_state : REV_2ND"); cs_man_fwd3 =0;}
+								}
+								break;
+
+				case	REV_1ST:
+								if(SBRK_FLAG == SBRK_OFF && old_state == NTR     && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = REV_1ST; GEAR_STAGE =     NTR_REV_1ST; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) 	{ old_state = REV_1ST; GEAR_STAGE = REV_2ND_REV_1ST; GEAR_DONE_FLAG = 0; }
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = REV_1ST; GEAR_STAGE =     NTR_REV_1ST; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1 ) 							{ old_state = REV_1ST; GEAR_STAGE =     NTR_REV_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = REV_1ST; GEAR_STAGE =     NTR_REV_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) 	{ old_state = REV_1ST; GEAR_STAGE =     NTR_REV_1ST; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) 	{ old_state = REV_1ST; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) 	{ old_state = REV_1ST; GEAR_STAGE = NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 0 )	{ GEAR_DONE_FLAG = 1; ONE_FLAG =0; ALL_Gear_OFF(); }
+
+								if(GEAR_DONE_FLAG ==1) cs_man_rev1++;
+								if(cs_man_rev1 == 500 && GEAR_DONE_FLAG == 1)
+								{
+									if(old_state == NTR) 	 { log_print("cur_state : MANUAL_REV_1ST, old_state : NTR"); 	 cs_man_rev1 =0;}
+									if(old_state == FWD_1ST) { log_print("cur_state : MANUAL_REV_1ST, old_state : FWD_1ST"); cs_man_rev1 =0;}
+									if(old_state == FWD_2ND) { log_print("cur_state : MANUAL_REV_1ST, old_state : FWD_2ND"); cs_man_rev1 =0;}
+									if(old_state == FWD_3RD) { log_print("cur_state : MANUAL_REV_1ST, old_state : FWD_3RD"); cs_man_rev1 =0;}
+									if(old_state == REV_1ST) { log_print("cur_state : MANUAL_REV_1ST, old_state : REV_1ST"); cs_man_rev1 =0;}
+									if(old_state == REV_2ND) { log_print("cur_state : MANUAL_REV_1ST, old_state : REV_2ND"); cs_man_rev1 =0;}
+								}
+
+
+								break;
+				case	REV_2ND:
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 != 0) { old_state = REV_2ND; GEAR_STAGE = REV_1ST_REV_2ND; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == REV_1ST && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = REV_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF();}
+								if(SBRK_FLAG == SBRK_OFF && old_state == NTR     && GEAR_DONE_FLAG == 1 && sysStat.rpmWheel1 == 0) { old_state = REV_2ND; GEAR_STAGE =     	   NOT_ACT; GEAR_DONE_FLAG = 0; }
+
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_1ST && GEAR_DONE_FLAG == 1) { old_state = REV_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_2ND && GEAR_DONE_FLAG == 1) { old_state = REV_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+								if(SBRK_FLAG == SBRK_OFF && old_state == FWD_3RD && GEAR_DONE_FLAG == 1) { old_state = REV_2ND; GEAR_STAGE =         NOT_ACT; GEAR_DONE_FLAG = 0; ALL_Gear_OFF(); }
+
+								if(GEAR_DONE_FLAG ==1) cs_man_rev2++;
+								if(cs_man_rev2 == 500 && GEAR_DONE_FLAG == 1)
+								{
+									if(old_state == NTR) 	 { log_print("cur_state : MANUAL_REV_2ND, old_state : NTR"); 	 cs_man_rev2 =0;}
+									if(old_state == FWD_1ST) { log_print("cur_state : MANUAL_REV_2ND, old_state : FWD_1ST"); cs_man_rev2 =0;}
+									if(old_state == FWD_2ND) { log_print("cur_state : MANUAL_REV_2ND, old_state : FWD_2ND"); cs_man_rev2 =0;}
+									if(old_state == FWD_3RD) { log_print("cur_state : MANUAL_REV_2ND, old_state : FWD_3RD"); cs_man_rev2 =0;}
+									if(old_state == REV_1ST) { log_print("cur_state : MANUAL_REV_2ND, old_state : REV_1ST"); cs_man_rev2 =0;}
+									if(old_state == REV_2ND) { log_print("cur_state : MANUAL_REV_2ND, old_state : REV_2ND"); cs_man_rev2 =0;}
+								}
+								break;
+
+				case	NO_OP:
+								break;
+				default :
+								break;
+			}
+
+			if(GEAR_DONE_FLAG == 0) gear_change(GEAR_STAGE);
+            break;
+
+        case TLE_WORK_FAULT:
+            break;
+
+        case TLE_WORK_TEST_PWM:
+            break;
+
+        case TLE_WORK_DEBUG:
+            if (bDebugTLE82453 == FALSE)
+            {
+                workCh1 = prevWorkCh1;
+            }
+            break;
+
+        case TLE_WORK_EM_MODE:
+        	if (Timer_isOver(&timeCh1, TIME_EMERGENCY) == TRUE)
+        	{
+        		log_print(LOG_RED "EMERGENCY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"LOG_COLOR_RESET);
+        	}
+        	break;
+
+
+        default:
+            break;
+    }
+
+}
+
+void Emergency_func(void)
+{
+	FWD_REV_OFF();
+	if(ch1_forward_valve == 0 && ch1_reverse_valve == 0)
+	{
+   		if (ch1_parking_valve > 0) { ch1_parking_valve = 0; spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve); }
+   		ALL_Gear_OFF();
+	}
+
+}
+
+void spi_write(uint8_t spi_ch, uint16_t data1, uint16_t data2)
+{
+    uint16_t spi_w_buff[2];
+    uint16_t spi_tmp[2];
+
+    spi_w_buff[0] = data1 | 0x8000;
+    spi_w_buff[1] = data2;
+
+    if (spi_ch == SPI_CHIP1)
+    {
+        DSPI_MasterTransferBlocking(INST_SPI1, spi_w_buff, spi_tmp, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+    }
+    else if (spi_ch == SPI_CHIP2)
+    {
+        DSPI_MasterTransferBlocking(INST_SPI2, spi_w_buff, spi_tmp, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+    }
+    else
+    {
+    }
+}
+
+
+void spi_read(uint8_t spi_ch, uint8_t addr, uint16_t *spi_r_buff)
+{
+    uint16_t spi_w_buff[2];
+
+    addr &= 0x7fU;
+
+    spi_w_buff[0] = (uint16_t)addr << 8;
+    spi_w_buff[1] = 0U;
+
+    if (spi_ch == SPI_CHIP1)
+    {
+        DSPI_MasterTransferBlocking(INST_SPI1, spi_w_buff, spi_r_buff, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+        DSPI_MasterTransferBlocking(INST_SPI1, spi_w_buff, spi_r_buff, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+    }
+    else if (spi_ch == SPI_CHIP2)
+    {
+        DSPI_MasterTransferBlocking(INST_SPI2, spi_w_buff, spi_r_buff, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+        DSPI_MasterTransferBlocking(INST_SPI2, spi_w_buff, spi_r_buff, NUMBER_OF_FRAMES, TIMEOUT_SPI);
+    }
+    else
+    {
+    }
+}
+
+/*
+ *==================================================================================================
+ *
+ *  Static Function
+ *
+ *==================================================================================================
+ */
+
+void Gpio_Val_DrvInit(void)	//ch1,ch2 -> chip_en, chip_cs, chip_rst -> 6 pin initialize
+{
+	if(sysStat.bIgnition == ON)
+	{
+		Gpio_setPins(P_VCTRL_EN, HIGH);
+		Gpio_setPins(P_V_SEN_EN, HIGH);
+		Gpio_setPins(P_PD_EN, HIGH);
+	}
+
+	//TLE82453-3SA GPIO INIT VALUE
+	Gpio_setPins(P_CHIP1_EN, LOW);
+	Gpio_setPins(P_CHIP2_EN, LOW);
+	Gpio_setPins(P_DSPI1_CS0, HIGH);
+	Gpio_setPins(P_DSPI2_CS0, HIGH);
+	Gpio_setPins(P_CHIP1_RST, LOW);
+	Gpio_setPins(P_CHIP2_RST, LOW);
+}
+
+
+void ALL_Gear_OFF(void)
+{
+	if(ch1_forward_valve > 0)	{ ch1_forward_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve); }
+	if(ch1_reverse_valve > 0) 	{ ch1_reverse_valve = 0; 	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve); }
+	if(ch2_1st_valve > 0) 		{ ch2_1st_valve = 0; 		spi_write(SPI_CHIP2, ADDR16_SETPOINT_L0 | 0xC0, ch2_1st_valve); }
+	if(ch2_2nd_valve > 0) 		{ ch2_2nd_valve = 0; 		spi_write(SPI_CHIP2, ADDR16_SETPOINT_L1 | 0xC0, ch2_2nd_valve); }
+	if(ch2_3rd_valve > 0) 		{ ch2_3rd_valve = 0; 		spi_write(SPI_CHIP2, ADDR16_SETPOINT_L2 | 0xC0, ch2_3rd_valve); }
+}
+
+void FWD_REV_OFF(void)
+{
+	if(ch1_forward_valve > 0) { ch1_forward_valve = 0;	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve); }
+	if(ch1_reverse_valve > 0) { ch1_reverse_valve = 0; 	spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve); }
+}
+
+void Gear_123_OFF(void)
+{
+	if(ch2_1st_valve > 0) { ch2_1st_valve = 0; spi_write(SPI_CHIP2, ADDR16_SETPOINT_L0 | 0xC0, ch2_1st_valve); }
+	if(ch2_2nd_valve > 0) { ch2_2nd_valve = 0; spi_write(SPI_CHIP2, ADDR16_SETPOINT_L1 | 0xC0, ch2_2nd_valve); }
+	if(ch2_3rd_valve > 0) { ch2_3rd_valve = 0; spi_write(SPI_CHIP2, ADDR16_SETPOINT_L2 | 0xC0, ch2_3rd_valve); }
+}
+
+void gear_ptr_set(uint8_t gear_setptr)
+{
+	if(gear_setptr ==         NOT_ACT) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	//if(gear_setptr ==     NTR_FWD_1ST) 	{ ch1_fwd = FORWARD_CURRENTS; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = FWD_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr ==     NTR_FWD_1ST) 	{ ch1_fwd = FORWARD_CURRENTS; ch1_rev = ZERO_SET_CURRENT; ch1_pak = PARKING_SHUP_CUR; ch2_1st = FWD_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_2ND_FWD_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = FWD_1ST_SHUP_CUR; ch2_2nd = FWD_2ND_SHDN_CUR; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_3RD_FWD_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = FWD_1ST_SHUP_CUR; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_1ST_FWD_1ST) 	{ ch1_fwd = FORWARD_CURRENTS; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = FWD_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_2ND_FWD_1ST) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+
+	if(gear_setptr ==     NTR_FWD_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_1ST_FWD_2ND) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = FWD_1ST_SHDN_CUR; ch2_2nd = FWD_2ND_SHUP_CUR; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_3RD_FWD_2ND) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = ZERO_SET_CURRENT; ch2_2nd = FWD_2ND_SHUP_CUR; ch2_3rd = FWD_3RD_SHDN_CUR; }
+	if(gear_setptr == REV_1ST_FWD_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_2ND_FWD_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+
+	if(gear_setptr ==     NTR_FWD_3RD) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_1ST_FWD_3RD) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = ZERO_SET_CURRENT; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = FWD_3RD_SHUP_CUR; }
+	if(gear_setptr == FWD_2ND_FWD_3RD) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = ZERO_SET_CURRENT; ch2_2nd = FWD_2ND_SHDN_CUR; ch2_3rd = FWD_3RD_SHUP_CUR; }
+	if(gear_setptr == REV_1ST_FWD_3RD) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_2ND_FWD_3RD) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+
+	//if(gear_setptr ==     NTR_REV_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = REVERSE_CURRENTS; ch1_pak = ZERO_SET_CURRENT; ch2_1st = REV_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr ==     NTR_REV_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = REVERSE_CURRENTS; ch1_pak = PARKING_SHUP_CUR; ch2_1st = REV_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_1ST_REV_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = REVERSE_CURRENTS; ch1_pak = ZERO_SET_CURRENT; ch2_1st = REV_1ST_CURRENTS; ch2_2nd = ZERO_SET_CURRENT; ch2_3rd = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_2ND_REV_1ST) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_3RD_REV_1ST) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_2ND_REV_1ST) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = REV_1ST_SHUP_CUR; ch2_2nd = REV_2ND_SHDN_CUR; ch2_3rd = ZERO_SET_CURRENT; }
+
+	if(gear_setptr ==     NTR_REV_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_1ST_REV_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_2ND_REV_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == FWD_3RD_REV_2ND) 	{ dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; dmy_ptr = ZERO_SET_CURRENT; }
+	if(gear_setptr == REV_1ST_REV_2ND) 	{ ch1_fwd = ZERO_SET_CURRENT; ch1_rev = ZERO_SET_CURRENT; ch1_pak = ZERO_SET_CURRENT; ch2_1st = REV_1ST_SHDN_CUR; ch2_2nd = REV_2ND_SHUP_CUR; ch2_3rd = ZERO_SET_CURRENT; }
+
+}
+
+void gear_change(uint8_t gear_stage)
+{
+
+	if(gear_stage ==         NOT_ACT && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(        NOT_ACT); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == 	 NTR_FWD_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(    NTR_FWD_1ST); ONE_FLAG = 1; gear_sel = FR_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_2ND_FWD_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_2ND_FWD_1ST); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_3RD_FWD_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_3RD_FWD_1ST); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_1ST_FWD_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_1ST_FWD_1ST); ONE_FLAG = 1; gear_sel = FR_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_2ND_FWD_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_2ND_FWD_1ST); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+
+	if(gear_stage == 	 NTR_FWD_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(    NTR_FWD_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_1ST_FWD_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_1ST_FWD_2ND); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_3RD_FWD_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_3RD_FWD_2ND); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_1ST_FWD_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_1ST_FWD_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_2ND_FWD_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_2ND_FWD_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+
+	if(gear_stage == 	 NTR_FWD_3RD && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(    NTR_FWD_3RD); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_1ST_FWD_3RD && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_1ST_FWD_3RD); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_2ND_FWD_3RD && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(FWD_2ND_FWD_3RD); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_1ST_FWD_3RD && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_1ST_FWD_3RD); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_2ND_FWD_3RD && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(REV_2ND_FWD_3RD); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+
+	if(gear_stage == 	 NTR_REV_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(    NTR_REV_1ST); ONE_FLAG = 1; gear_sel = FR_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_1ST_REV_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_1ST_REV_1ST); ONE_FLAG = 1; gear_sel = FR_GEAR; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_2ND_REV_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_2ND_REV_1ST); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_3RD_REV_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_3RD_REV_1ST); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_2ND_REV_1ST && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(REV_2ND_REV_1ST); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+
+	if(gear_stage == 	 NTR_REV_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(    NTR_REV_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_1ST_REV_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_1ST_REV_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_2ND_REV_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_2ND_REV_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == FWD_3RD_REV_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 == 0 ) { gear_ptr_set(FWD_3RD_REV_2ND); ONE_FLAG = 1; gear_sel = NT_WAIT; ref_time =0; current_cnt =0;}
+	if(gear_stage == REV_1ST_REV_2ND && ONE_FLAG == 0 && sysStat.rpmWheel1 != 0 ) { gear_ptr_set(REV_1ST_REV_2ND); ONE_FLAG = 1; gear_sel = NU_GEAR; ref_time =0; current_cnt =0;}
+
+	if(gear_sel ==  FR_GEAR)
+	{
+		if(ONE_FLAG == 1 )
+		{
+			if(ref_time < MAX_COUNT_1MS+1)
+			{
+				if((ref_time % MAX_DIVIDE) == 0)
+				{
+					ch2_1st_valve 	  = *(ch2_1st + current_cnt);
+					ch2_2nd_valve 	  = *(ch2_2nd + current_cnt);
+					ch2_3rd_valve 	  = *(ch2_3rd + current_cnt);
+					ch1_forward_valve = *(ch1_fwd + current_cnt);
+					ch1_reverse_valve = *(ch1_rev + current_cnt);
+					if(sysStat.bAutoManual == ON && WHEEL1_FLAG == ZERO_SPD) ch1_parking_valve = *(ch1_pak + current_cnt);	//add by sara 2023.03.02
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L0 | 0xC0, ch2_1st_valve);
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L1 | 0xC0, ch2_2nd_valve);
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L2 | 0xC0, ch2_3rd_valve);
+					spi_write(SPI_CHIP1, ADDR16_SETPOINT_L0 | 0xC0, ch1_forward_valve);
+					spi_write(SPI_CHIP1, ADDR16_SETPOINT_L1 | 0xC0, ch1_reverse_valve);
+					if(sysStat.bAutoManual == ON && WHEEL1_FLAG == ZERO_SPD) spi_write(SPI_CHIP1, ADDR16_SETPOINT_L2 | 0xC0, ch1_parking_valve);// add by sara 2023.03.02
+					//if(current_cnt == 0) log_print("TIME   REF   1ST    2ND    3RD    FWD    REV");
+					//if((current_cnt%5) ==0) log_print(" %4d: %3d, %4d, %4d, %4d, %4d, %4d",ref_time,current_cnt,ch2_1st_valve,ch2_2nd_valve,ch2_3rd_valve, ch1_forward_valve, ch1_reverse_valve);
+					if(current_cnt == 0) log_print("TIME   REF   1ST    2ND    3RD    FWD    REV    PAK");
+					if((current_cnt%5) ==0) log_print(" %4d: %3d, %4d, %4d, %4d, %4d, %4d, %4d",ref_time,current_cnt,ch2_1st_valve,ch2_2nd_valve,ch2_3rd_valve, ch1_forward_valve, ch1_reverse_valve, ch1_parking_valve);
+					current_cnt++;
+				}
+				ref_time++;
+			}
+			else 	//when fwd_ref_time >= 2001
+			{
+				log_print("Forward final ref_time =  %d", ref_time++);
+				ONE_FLAG = 0;
+				GEAR_DONE_FLAG = 1;
+				if(sysStat.bAutoManual == ON) WHEEL1_FLAG = NON_ZERO_SPD;// add by sara 2023.03.02
+
+			}
+		}
+	}
+
+	if(gear_sel == NU_GEAR)
+	{
+		if(ONE_FLAG == 1 )
+		{
+			if(ref_time < MAX_COUNT_1MS+1)
+			{
+				if((ref_time % MAX_DIVIDE) == 0)
+				{
+					ch2_1st_valve = *(ch2_1st + current_cnt);
+					ch2_2nd_valve = *(ch2_2nd + current_cnt);
+					ch2_3rd_valve = *(ch2_3rd + current_cnt);
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L0 | 0xC0, ch2_1st_valve);
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L1 | 0xC0, ch2_2nd_valve);
+					spi_write(SPI_CHIP2, ADDR16_SETPOINT_L2 | 0xC0, ch2_3rd_valve);
+					if(current_cnt == 0) log_print("TIME   REF   1ST    2ND   3RD   FWD   REV");
+					if((current_cnt%5) ==0) log_print(" %4d: %3d, %4d, %4d, %4d, %4d, %4d",ref_time,current_cnt,ch2_1st_valve, ch2_2nd_valve, ch2_3rd_valve,ch1_forward_valve, ch1_reverse_valve);
+					current_cnt++;
+				}
+				ref_time++;
+			}
+			else 	//when fwd_ref_time >= 2001
+			{
+				log_print("Forward final ref_time =  %d", ref_time++);
+				ONE_FLAG = 0;
+				GEAR_DONE_FLAG = 1;
+				if(sysStat.bAutoManual == ON)WHEEL1_FLAG = NON_ZERO_SPD;// add by sara 2023.03.02
+			}
+		}
+	}
+
+	if(gear_sel == NT_WAIT)
+	{
+		if(ONE_FLAG != 0) ONE_FLAG = 0;
+		if(GEAR_DONE_FLAG != 1) GEAR_DONE_FLAG = 1;
+		//if(sysStat.bAutoManual == ON)WHEEL1_FLAG = NON_ZERO_SPD;// add by sara 2023.03.02
+	}
+
+}
+
+
+
+
+

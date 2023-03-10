@@ -1,0 +1,21 @@
+17:04:46 **** Incremental Build of configuration Debug_FLASH for project T_ECU ****
+make -j16 all 
+Building file: ../Sources/Pwm/TLE82453.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Pwm/TLE82453.args" -MMD -MP -MF"Sources/Pwm/TLE82453.d" -MT"Sources/Pwm/TLE82453.o" -o "Sources/Pwm/TLE82453.o" "../Sources/Pwm/TLE82453.c"
+Finished building: ../Sources/Pwm/TLE82453.c
+ 
+Building target: T_ECU.elf
+Invoking: Standard S32DS C Linker
+powerpc-eabivle-gcc -o "T_ECU.elf" "@T_ECU.args"    
+Finished building target: T_ECU.elf
+ 
+Invoking: Standard S32DS Print Size
+powerpc-eabivle-size --format=berkeley T_ECU.elf
+   text	   data	    bss	    dec	    hex	filename
+  87167	  19532	  45052	 151751	  250c7	T_ECU.elf
+Finished building: T_ECU.siz
+ 
+
+17:04:48 Build Finished (took 1s.323ms)
+

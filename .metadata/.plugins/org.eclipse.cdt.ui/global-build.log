@@ -1,0 +1,415 @@
+16:52:26 **** Clean-only build of configuration Debug_FLASH for project T_ECU ****
+make -j16 clean 
+rm -rf ./*
+ 
+16:52:26 **** Build of configuration Debug_FLASH for project T_ECU ****
+make -j16 all 
+Building file: ../Sources/Sys/Adc.c
+Building file: ../Sources/Sys/Gpio.c
+Building file: ../Sources/Sys/Pwm.c
+Invoking: Standard S32DS C Compiler
+Building file: ../Sources/Sys/QueueBuffer.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/Pwm.d" -MT"Sources/Sys/Pwm.o" -o "Sources/Sys/Pwm.o" "../Sources/Sys/Pwm.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/Gpio.d" -MT"Sources/Sys/Gpio.o" -o "Sources/Sys/Gpio.o" "../Sources/Sys/Gpio.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/QueueBuffer.d" -MT"Sources/Sys/QueueBuffer.o" -o "Sources/Sys/QueueBuffer.o" "../Sources/Sys/QueueBuffer.c"
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/Adc.d" -MT"Sources/Sys/Adc.o" -o "Sources/Sys/Adc.o" "../Sources/Sys/Adc.c"
+Building file: ../Sources/Sys/SwI2c.c
+Building file: ../Sources/Sys/SysMain.c
+Building file: ../Sources/Sys/SysTimer.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/SwI2c.d" -MT"Sources/Sys/SwI2c.o" -o "Sources/Sys/SwI2c.o" "../Sources/Sys/SwI2c.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/SysMain.d" -MT"Sources/Sys/SysMain.o" -o "Sources/Sys/SysMain.o" "../Sources/Sys/SysMain.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/SysTimer.d" -MT"Sources/Sys/SysTimer.o" -o "Sources/Sys/SysTimer.o" "../Sources/Sys/SysTimer.c"
+../Sources/Sys/Gpio.c:316:13: warning: 'Gpio_setInputBuffer' defined but not used [-Wunused-function]
+ static void Gpio_setInputBuffer(PORT_Type * const base, uint16_t pin, bool enable)
+             ^
+../Sources/Sys/QueueBuffer.c: In function 'Queue_init':
+../Sources/Sys/QueueBuffer.c:46:5: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
+     memset(q_init->qBuff, 0U, size_init);
+     ^
+../Sources/Sys/QueueBuffer.c:46:5: warning: incompatible implicit declaration of built-in function 'memset'
+../Sources/Sys/QueueBuffer.c: In function 'Queue_putBytes':
+../Sources/Sys/QueueBuffer.c:107:13: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+             memcpy(q_puts->qBuff + q_puts->qHead, b_puts, gap_puts);
+             ^
+../Sources/Sys/QueueBuffer.c:107:13: warning: incompatible implicit declaration of built-in function 'memcpy'
+../Sources/Sys/QueueBuffer.c:112:13: warning: incompatible implicit declaration of built-in function 'memcpy'
+             memcpy(q_puts->qBuff + q_puts->qHead, b_puts, size_puts);
+             ^
+../Sources/Sys/QueueBuffer.c: In function 'Queue_getBytes':
+../Sources/Sys/QueueBuffer.c:137:13: warning: incompatible implicit declaration of built-in function 'memcpy'
+             memcpy(pb_gets, q_gets->qBuff + q_gets->qTail, gap_gets);
+             ^
+../Sources/Sys/QueueBuffer.c:142:13: warning: incompatible implicit declaration of built-in function 'memcpy'
+             memcpy(pb_gets, q_gets->qBuff + q_gets->qTail, size_gets);
+             ^
+Building file: ../Sources/Sys/eTimer.c
+Building file: ../Sources/Pwm/TLE82453.c
+Building file: ../Sources/Led/Led.c
+Invoking: Standard S32DS C Compiler
+Building file: ../Sources/Key/KeyScan.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Sys/Adc.args" -MMD -MP -MF"Sources/Sys/eTimer.d" -MT"Sources/Sys/eTimer.o" -o "Sources/Sys/eTimer.o" "../Sources/Sys/eTimer.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Pwm/TLE82453.args" -MMD -MP -MF"Sources/Pwm/TLE82453.d" -MT"Sources/Pwm/TLE82453.o" -o "Sources/Pwm/TLE82453.o" "../Sources/Pwm/TLE82453.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Led/Led.args" -MMD -MP -MF"Sources/Led/Led.d" -MT"Sources/Led/Led.o" -o "Sources/Led/Led.o" "../Sources/Led/Led.c"
+powerpc-eabivle-gcc "@Sources/Key/KeyScan.args" -MMD -MP -MF"Sources/Key/KeyScan.d" -MT"Sources/Key/KeyScan.o" -o "Sources/Key/KeyScan.o" "../Sources/Key/KeyScan.c"
+../Sources/Sys/SysMain.c: In function 'SysMain_task':
+../Sources/Sys/SysMain.c:92:5: warning: implicit declaration of function 'Adc_initTask' [-Wimplicit-function-declaration]
+     Adc_initTask();
+     ^
+../Sources/Sys/SysMain.c:107:9: warning: implicit declaration of function 'Adc_task' [-Wimplicit-function-declaration]
+         Adc_task();
+         ^
+Building file: ../Sources/Eeprom/Eeprom.c
+Building file: ../Sources/Detect/Detect.c
+Finished building: ../Sources/Sys/Pwm.c
+Finished building: ../Sources/Sys/QueueBuffer.c
+Invoking: Standard S32DS C Compiler
+Finished building: ../Sources/Sys/Gpio.c
+powerpc-eabivle-gcc "@Sources/Detect/Detect.args" -MMD -MP -MF"Sources/Detect/Detect.d" -MT"Sources/Detect/Detect.o" -o "Sources/Detect/Detect.o" "../Sources/Detect/Detect.c"
+ 
+ 
+ 
+Invoking: Standard S32DS C Compiler
+Finished building: ../Sources/Sys/Adc.c
+Building file: ../Sources/Debug/DebugLog.c
+powerpc-eabivle-gcc "@Sources/Eeprom/Eeprom.args" -MMD -MP -MF"Sources/Eeprom/Eeprom.d" -MT"Sources/Eeprom/Eeprom.o" -o "Sources/Eeprom/Eeprom.o" "../Sources/Eeprom/Eeprom.c"
+Finished building: ../Sources/Sys/SysMain.c
+ 
+ 
+Finished building: ../Sources/Sys/SwI2c.c
+Invoking: Standard S32DS C Compiler
+Finished building: ../Sources/Sys/SysTimer.c
+powerpc-eabivle-gcc "@Sources/Debug/DebugLog.args" -MMD -MP -MF"Sources/Debug/DebugLog.d" -MT"Sources/Debug/DebugLog.o" -o "Sources/Debug/DebugLog.o" "../Sources/Debug/DebugLog.c"
+ 
+ 
+Finished building: ../Sources/Sys/eTimer.c
+../Sources/Detect/Detect.c: In function 'Detect_task':
+../Sources/Detect/Detect.c:635:9: warning: 'tmp_gear_stat' may be used uninitialized in this function [-Wmaybe-uninitialized]
+         log_print(LOG_MAGENTA "Gear Stat %s"LOG_COLOR_RESET, getStrGearStat(tmp_gear_stat));
+Building file: ../Sources/Debug/Monitor.c
+         ^
+../Sources/Detect/Detect.c:610:17: note: 'tmp_gear_stat' was declared here
+     gear_stat_t tmp_gear_stat;
+                 ^
+Finished building: ../Sources/Led/Led.c
+ 
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Debug/DebugLog.args" -MMD -MP -MF"Sources/Debug/Monitor.d" -MT"Sources/Debug/Monitor.o" -o "Sources/Debug/Monitor.o" "../Sources/Debug/Monitor.c"
+Finished building: ../Sources/Key/KeyScan.c
+ 
+ 
+../Sources/Debug/DebugLog.c: In function 'uart_print':
+Building file: ../Sources/main.c
+../Sources/Debug/DebugLog.c:178:20: warning: unused variable 'q_send_log' [-Wunused-variable]
+     debug_q_type_t q_send_log;
+                    ^
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/osif/osif_freertos.c
+../Sources/Debug/DebugLog.c:186:18: warning: 'str_length' is used uninitialized in this function [-Wuninitialized]
+     str_length = vsprintf(&uart_buf[str_length], uart_msg, ap);
+                  ^
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/osif/osif_freertos.args" -MMD -MP -MF"SDK/rtos/osif/osif_freertos.d" -MT"SDK/rtos/osif/osif_freertos.o" -o "SDK/rtos/osif/osif_freertos.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/osif/osif_freertos.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.d" -MT"SDK/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.o" -o "SDK/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.c"
+Finished building: ../Sources/Detect/Detect.c
+powerpc-eabivle-gcc "@Sources/main.args" -MMD -MP -MF"Sources/main.d" -MT"Sources/main.o" -o "Sources/main.o" "../Sources/main.c"
+ 
+../Sources/Debug/Monitor.c:735:16: warning: conflicting types for built-in function 'toupper'
+ static uint8_t toupper(uint8_t ch)
+                ^
+Finished building: ../Sources/Eeprom/Eeprom.c
+Finished building: ../Sources/Pwm/TLE82453.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/portasm.s
+ 
+ 
+Invoking: Standard S32DS Assembler
+Finished building: ../Sources/Debug/DebugLog.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.d" -MT"SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.o" -o "SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/MemMang/heap_2.c
+ 
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/portasm.args" -o "SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/portasm.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/portasm.s"
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/croutine.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/event_groups.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/list.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.d" -MT"SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.o" -o "SDK/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/osif/osif_freertos.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/list.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/list.d" -MT"SDK/rtos/FreeRTOS_PA/Source/list.o" -o "SDK/rtos/FreeRTOS_PA/Source/list.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/list.c"
+ 
+Finished building: ../Sources/main.c
+Finished building: ../Sources/Debug/Monitor.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/event_groups.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/event_groups.d" -MT"SDK/rtos/FreeRTOS_PA/Source/event_groups.o" -o "SDK/rtos/FreeRTOS_PA/Source/event_groups.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/event_groups.c"
+ 
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/port.c
+Invoking: Standard S32DS C Compiler
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/portasm.s
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/croutine.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/croutine.d" -MT"SDK/rtos/FreeRTOS_PA/Source/croutine.o" -o "SDK/rtos/FreeRTOS_PA/Source/croutine.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/croutine.c"
+ 
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/list.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/queue.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/stream_buffer.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/tasks.c
+Invoking: Standard S32DS C Compiler
+ 
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/queue.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/queue.d" -MT"SDK/rtos/FreeRTOS_PA/Source/queue.o" -o "SDK/rtos/FreeRTOS_PA/Source/queue.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/queue.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/tasks.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/tasks.d" -MT"SDK/rtos/FreeRTOS_PA/Source/tasks.o" -o "SDK/rtos/FreeRTOS_PA/Source/tasks.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/tasks.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/portable/GCC/PowerPC/porttimer.c
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/croutine.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/event_groups.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/stream_buffer.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/stream_buffer.d" -MT"SDK/rtos/FreeRTOS_PA/Source/stream_buffer.o" -o "SDK/rtos/FreeRTOS_PA/Source/stream_buffer.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/stream_buffer.c"
+ 
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/timers.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/uart/uart_pal.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/rtos/FreeRTOS_PA/Source/timers.args" -MMD -MP -MF"SDK/rtos/FreeRTOS_PA/Source/timers.d" -MT"SDK/rtos/FreeRTOS_PA/Source/timers.o" -o "SDK/rtos/FreeRTOS_PA/Source/timers.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/timers.c"
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_irq.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/pal/src/uart/uart_pal.args" -MMD -MP -MF"SDK/platform/pal/src/uart/uart_pal.d" -MT"SDK/platform/pal/src/uart/uart_pal.o" -o "SDK/platform/pal/src/uart/uart_pal.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/uart/uart_pal.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/pal/src/adc/adc_irq.args" -MMD -MP -MF"SDK/platform/pal/src/adc/adc_irq.d" -MT"SDK/platform/pal/src/adc/adc_irq.o" -o "SDK/platform/pal/src/adc/adc_irq.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_irq.c"
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_pal.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/pins_siul2_driver.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/siul2_hw_access.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/queue.c
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/pins/siul2/pins_siul2_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/pins/siul2/pins_siul2_driver.d" -MT"SDK/platform/drivers/src/pins/siul2/pins_siul2_driver.o" -o "SDK/platform/drivers/src/pins/siul2/pins_siul2_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/pins_siul2_driver.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/pins/siul2/siul2_hw_access.args" -MMD -MP -MF"SDK/platform/drivers/src/pins/siul2/siul2_hw_access.d" -MT"SDK/platform/drivers/src/pins/siul2/siul2_hw_access.o" -o "SDK/platform/drivers/src/pins/siul2/siul2_hw_access.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/siul2_hw_access.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/stream_buffer.c
+ 
+ 
+powerpc-eabivle-gcc "@SDK/platform/pal/src/adc/adc_pal.args" -MMD -MP -MF"SDK/platform/pal/src/adc/adc_pal.d" -MT"SDK/platform/pal/src/adc/adc_pal.o" -o "SDK/platform/pal/src/adc/adc_pal.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_pal.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/tasks.c
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/rtos/FreeRTOS_PA/Source/timers.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_driver.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_irq.c
+ 
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/linflexd/linflexd_uart_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/linflexd/linflexd_uart_driver.d" -MT"SDK/platform/drivers/src/linflexd/linflexd_uart_driver.o" -o "SDK/platform/drivers/src/linflexd/linflexd_uart_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_driver.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_irq.c
+Invoking: Standard S32DS C Compiler
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/uart/uart_pal.c
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/linflexd/linflexd_uart_irq.args" -MMD -MP -MF"SDK/platform/drivers/src/linflexd/linflexd_uart_irq.d" -MT"SDK/platform/drivers/src/linflexd/linflexd_uart_irq.o" -o "SDK/platform/drivers/src/linflexd/linflexd_uart_irq.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_irq.c"
+ 
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/flexpwm/flexpwm_driver.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/pins_siul2_driver.c
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/flexpwm/flexpwm_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/flexpwm/flexpwm_driver.d" -MT"SDK/platform/drivers/src/flexpwm/flexpwm_driver.o" -o "SDK/platform/drivers/src/flexpwm/flexpwm_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/flexpwm/flexpwm_driver.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/pins/siul2/siul2_hw_access.c
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.args" -MMD -MP -MF"SDK/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.d" -MT"SDK/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.o" -o "SDK/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.c"
+ 
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_driver.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_hw_access.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/etimer/etimer_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/etimer/etimer_driver.d" -MT"SDK/platform/drivers/src/etimer/etimer_driver.o" -o "SDK/platform/drivers/src/etimer/etimer_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_driver.c"
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_driver.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/etimer/etimer_hw_access.args" -MMD -MP -MF"SDK/platform/drivers/src/etimer/etimer_hw_access.d" -MT"SDK/platform/drivers/src/etimer/etimer_hw_access.o" -o "SDK/platform/drivers/src/etimer/etimer_hw_access.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_hw_access.c"
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_hw_access.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/pal/src/adc/adc_pal.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_irq.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/edma/edma_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/edma/edma_driver.d" -MT"SDK/platform/drivers/src/edma/edma_driver.o" -o "SDK/platform/drivers/src/edma/edma_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_driver.c"
+ 
+ 
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/edma/edma_hw_access.args" -MMD -MP -MF"SDK/platform/drivers/src/edma/edma_hw_access.d" -MT"SDK/platform/drivers/src/edma/edma_hw_access.o" -o "SDK/platform/drivers/src/edma/edma_hw_access.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_hw_access.c"
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_irq.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/dspi/dspi_driver.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/linflexd/linflexd_uart_driver.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/ctu/ctu_driver.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/interrupt/interrupt_manager_MPC57xx.c
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/edma/edma_irq.args" -MMD -MP -MF"SDK/platform/drivers/src/edma/edma_irq.d" -MT"SDK/platform/drivers/src/edma/edma_irq.o" -o "SDK/platform/drivers/src/edma/edma_irq.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_irq.c"
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/dspi/dspi_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/dspi/dspi_driver.d" -MT"SDK/platform/drivers/src/dspi/dspi_driver.o" -o "SDK/platform/drivers/src/dspi/dspi_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/dspi/dspi_driver.c"
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/ctu/ctu_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/ctu/ctu_driver.d" -MT"SDK/platform/drivers/src/ctu/ctu_driver.o" -o "SDK/platform/drivers/src/ctu/ctu_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/ctu/ctu_driver.c"
+ 
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_hw_access.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/adc_sar/adc_sar_driver.c
+Invoking: Standard S32DS C Compiler
+ 
+Invoking: Standard S32DS C Compiler
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/system_MPC5744P.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/flexpwm/flexpwm_driver.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/etimer/etimer_driver.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/devices/MPC5744P/startup/system_MPC5744P.args" -MMD -MP -MF"SDK/platform/devices/MPC5744P/startup/system_MPC5744P.d" -MT"SDK/platform/devices/MPC5744P/startup/system_MPC5744P.o" -o "SDK/platform/devices/MPC5744P/startup/system_MPC5744P.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/system_MPC5744P.c"
+ 
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/adc_sar/adc_sar_driver.args" -MMD -MP -MF"SDK/platform/drivers/src/adc_sar/adc_sar_driver.d" -MT"SDK/platform/drivers/src/adc_sar/adc_sar_driver.o" -o "SDK/platform/drivers/src/adc_sar/adc_sar_driver.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/adc_sar/adc_sar_driver.c"
+ 
+powerpc-eabivle-gcc "@SDK/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.args" -MMD -MP -MF"SDK/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.d" -MT"SDK/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.o" -o "SDK/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_hw_access.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/startup.c
+ 
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/core0_intc_sw_handlers.S
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@SDK/platform/devices/startup.args" -MMD -MP -MF"SDK/platform/devices/startup.d" -MT"SDK/platform/devices/startup.o" -o "SDK/platform/devices/startup.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/startup.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_driver.c
+Invoking: Standard S32DS Assembler
+powerpc-eabivle-gcc "@Project_Settings/Startup_Code/core0_intc_sw_handlers.args" -o "Project_Settings/Startup_Code/core0_intc_sw_handlers.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/core0_intc_sw_handlers.S"
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/edma/edma_irq.c
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/interrupt_vectors.S
+Building file: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/startup_MPC5744P.S
+Building file: ../Generated_Code/Cpu.c
+ 
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/Cpu.d" -MT"Generated_Code/Cpu.o" -o "Generated_Code/Cpu.o" "../Generated_Code/Cpu.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/ctu/ctu_driver.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/dspi/dspi_driver.c
+ 
+ 
+Invoking: Standard S32DS Assembler
+powerpc-eabivle-gcc "@Project_Settings/Startup_Code/startup_MPC5744P.args" -o "Project_Settings/Startup_Code/startup_MPC5744P.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/startup_MPC5744P.S"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/core0_intc_sw_handlers.S
+Invoking: Standard S32DS Assembler
+powerpc-eabivle-gcc "@Project_Settings/Startup_Code/interrupt_vectors.args" -o "Project_Settings/Startup_Code/interrupt_vectors.o" "C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/interrupt_vectors.S"
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/system_MPC5744P.c
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/startup.c
+Building file: ../Generated_Code/adc_sar_0_1.c
+ 
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/adc_sar/adc_sar_driver.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/adc_sar_0_1.d" -MT"Generated_Code/adc_sar_0_1.o" -o "Generated_Code/adc_sar_0_1.o" "../Generated_Code/adc_sar_0_1.c"
+Building file: ../Generated_Code/adc_sar_2_3.c
+ 
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/adc_sar_2_3.d" -MT"Generated_Code/adc_sar_2_3.o" -o "Generated_Code/adc_sar_2_3.o" "../Generated_Code/adc_sar_2_3.c"
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/startup_MPC5744P.S
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/devices/MPC5744P/startup/gcc/interrupt_vectors.S
+ 
+Finished building: ../Generated_Code/Cpu.c
+ 
+Finished building: C:/NXP/S32DS_Power_v2.1/S32DS/software/S32_SDK_S32PA_RTM_3.0.3/platform/drivers/src/clock/MPC57xx/clock_MPC57xx.c
+ 
+Building file: ../Generated_Code/clockMan1.c
+ 
+Building file: ../Generated_Code/dmaController1.c
+Invoking: Standard S32DS C Compiler
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/clockMan1.d" -MT"Generated_Code/clockMan1.o" -o "Generated_Code/clockMan1.o" "../Generated_Code/clockMan1.c"
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/dmaController1.d" -MT"Generated_Code/dmaController1.o" -o "Generated_Code/dmaController1.o" "../Generated_Code/dmaController1.c"
+Building file: ../Generated_Code/eTimer1.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/eTimer1.d" -MT"Generated_Code/eTimer1.o" -o "Generated_Code/eTimer1.o" "../Generated_Code/eTimer1.c"
+Building file: ../Generated_Code/flexPWM1.c
+Building file: ../Generated_Code/pin_mux.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/flexPWM1.d" -MT"Generated_Code/flexPWM1.o" -o "Generated_Code/flexPWM1.o" "../Generated_Code/flexPWM1.c"
+Finished building: ../Generated_Code/adc_sar_0_1.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/pin_mux.d" -MT"Generated_Code/pin_mux.o" -o "Generated_Code/pin_mux.o" "../Generated_Code/pin_mux.c"
+Finished building: ../Generated_Code/adc_sar_2_3.c
+ 
+Building file: ../Generated_Code/spi0.c
+ 
+Building file: ../Generated_Code/spi1.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/spi0.d" -MT"Generated_Code/spi0.o" -o "Generated_Code/spi0.o" "../Generated_Code/spi0.c"
+Building file: ../Generated_Code/spi2.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/spi1.d" -MT"Generated_Code/spi1.o" -o "Generated_Code/spi1.o" "../Generated_Code/spi1.c"
+Invoking: Standard S32DS C Compiler
+Building file: ../Generated_Code/uart_debug.c
+Finished building: ../Generated_Code/clockMan1.c
+Finished building: ../Generated_Code/dmaController1.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/uart_debug.d" -MT"Generated_Code/uart_debug.o" -o "Generated_Code/uart_debug.o" "../Generated_Code/uart_debug.c"
+ 
+ 
+powerpc-eabivle-gcc "@Generated_Code/Cpu.args" -MMD -MP -MF"Generated_Code/spi2.d" -MT"Generated_Code/spi2.o" -o "Generated_Code/spi2.o" "../Generated_Code/spi2.c"
+Finished building: ../Generated_Code/eTimer1.c
+Finished building: ../Generated_Code/pin_mux.c
+ 
+ 
+Finished building: ../Generated_Code/flexPWM1.c
+ 
+Finished building: ../Generated_Code/spi0.c
+Finished building: ../Generated_Code/spi1.c
+ 
+ 
+Finished building: ../Generated_Code/uart_debug.c
+ 
+Finished building: ../Generated_Code/spi2.c
+ 
+Building target: T_ECU.elf
+Invoking: Standard S32DS C Linker
+powerpc-eabivle-gcc -o "T_ECU.elf" "@T_ECU.args"    
+Finished building target: T_ECU.elf
+ 
+Invoking: Standard S32DS Print Size
+powerpc-eabivle-size --format=berkeley T_ECU.elf
+   text	   data	    bss	    dec	    hex	filename
+  87167	  19532	  45052	 151751	  250c7	T_ECU.elf
+Finished building: T_ECU.siz
+ 
+17:01:34 **** Incremental Build of configuration Debug_FLASH for project T_ECU ****
+make -j16 all 
+Building file: ../Sources/Pwm/TLE82453.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Pwm/TLE82453.args" -MMD -MP -MF"Sources/Pwm/TLE82453.d" -MT"Sources/Pwm/TLE82453.o" -o "Sources/Pwm/TLE82453.o" "../Sources/Pwm/TLE82453.c"
+Finished building: ../Sources/Pwm/TLE82453.c
+ 
+Building target: T_ECU.elf
+Invoking: Standard S32DS C Linker
+powerpc-eabivle-gcc -o "T_ECU.elf" "@T_ECU.args"    
+Finished building target: T_ECU.elf
+ 
+Invoking: Standard S32DS Print Size
+powerpc-eabivle-size --format=berkeley T_ECU.elf
+   text	   data	    bss	    dec	    hex	filename
+  87167	  19532	  45052	 151751	  250c7	T_ECU.elf
+Finished building: T_ECU.siz
+ 
+17:04:46 **** Incremental Build of configuration Debug_FLASH for project T_ECU ****
+make -j16 all 
+Building file: ../Sources/Pwm/TLE82453.c
+Invoking: Standard S32DS C Compiler
+powerpc-eabivle-gcc "@Sources/Pwm/TLE82453.args" -MMD -MP -MF"Sources/Pwm/TLE82453.d" -MT"Sources/Pwm/TLE82453.o" -o "Sources/Pwm/TLE82453.o" "../Sources/Pwm/TLE82453.c"
+Finished building: ../Sources/Pwm/TLE82453.c
+ 
+Building target: T_ECU.elf
+Invoking: Standard S32DS C Linker
+powerpc-eabivle-gcc -o "T_ECU.elf" "@T_ECU.args"    
+Finished building target: T_ECU.elf
+ 
+Invoking: Standard S32DS Print Size
+powerpc-eabivle-size --format=berkeley T_ECU.elf
+   text	   data	    bss	    dec	    hex	filename
+  87167	  19532	  45052	 151751	  250c7	T_ECU.elf
+Finished building: T_ECU.siz
+ 
